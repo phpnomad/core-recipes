@@ -3,8 +3,8 @@
 namespace {{namespace}};
 
 use {{model}};
-use PHPNomad\Datamodel\Interfaces\DataModel;
-use PHPNomad\Datamodel\Interfaces\ModelAdapter;
+use PHPNomad\Datastore\Interfaces\DataModel;
+use PHPNomad\Datastore\Interfaces\ModelAdapter;
 
 class {{name}} implements ModelAdapter
 {
@@ -19,7 +19,7 @@ class {{name}} implements ModelAdapter
     public function toArray(DataModel $model): array
     {
         return [
-            'id' => $model->id,
+            'id' => $model->getId(),
             // TODO: Map remaining fields
         ];
     }

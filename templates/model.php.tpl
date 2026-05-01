@@ -2,9 +2,9 @@
 
 namespace {{namespace}};
 
-use PHPNomad\Datamodel\Interfaces\DataModel;
-use PHPNomad\Datamodel\Interfaces\HasSingleIntIdentity;
-use PHPNomad\Datamodel\Traits\WithSingleIntIdentity;
+use PHPNomad\Datastore\Interfaces\DataModel;
+use PHPNomad\Datastore\Interfaces\HasSingleIntIdentity;
+use PHPNomad\Datastore\Traits\WithSingleIntIdentity;
 
 class {{name}} implements DataModel, HasSingleIntIdentity
 {
