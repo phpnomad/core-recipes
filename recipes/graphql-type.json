@@ -1,18 +1,64 @@
 {
     "name": "graphql-type",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "GraphQL type definition with SDL and resolver mappings, registered with the schema.",
     "description": "Creates a GraphQL type definition and registers it in an initializer",
+    "problem": "You're building a GraphQL API and need to add a type to the schema — its fields, relationships, and how each field resolves to data — in a way that lives alongside the rest of the application's code.",
+    "appliesWhen": [
+        "Your application exposes a GraphQL API",
+        "You're adding a new domain type or extending an existing schema",
+        "You want type definitions to live with the code that backs them",
+        "Resolvers will pull from datastores, services, or other domain code"
+    ],
+    "avoidWhen": [
+        "Your API is REST-only — use phpnomad/controller instead",
+        "You're not using PHPNomad's GraphQL integration (the registration won't apply)",
+        "The shape only matters internally — use phpnomad/model"
+    ],
+    "synonyms": {
+        "general": ["GraphQL type", "schema type", "GQL type", "type definition"],
+        "graphql": ["object type", "type"],
+        "rest": ["resource definition (analog)"]
+    },
+    "examples": [
+        "Add a GraphQL User type",
+        "Define an Order type for the GraphQL schema",
+        "Add a Subscription type to the API"
+    ],
+    "tags": ["graphql", "api", "schema"],
+    "tradeoffs": "Couples the resolver to the type definition file — convenient for small types, awkward when resolvers grow. Refactor large types into separate resolver classes when needed.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "common-source-for-resolvers"},
+        {"recipe": "phpnomad/controller", "relationship": "alternative-for-rest-apis"}
+    ],
+    "outputs": [
+        "A {name} type definition class with SDL string and resolver mappings",
+        "A registration adding it to the initializer's getTypeDefinitions() list"
+    ],
+    "postApply": [
+        "Define the type's fields in the SDL string",
+        "Implement resolver methods for each non-trivial field",
+        "Verify the schema compiles by booting the GraphQL endpoint"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Type definition class name (e.g. UserType)"
+            "description": "Type definition class name (e.g. UserType)",
+            "example": "OrderType",
+            "aiHint": "PascalCase ending in 'Type'. Convention is {GraphQLName}Type."
         },
         "typeName": {
             "type": "string",
-            "description": "GraphQL type name (e.g. User)"
+            "description": "GraphQL type name (e.g. User)",
+            "example": "Order",
+            "aiHint": "PascalCase, no suffix. The name as it appears in the GraphQL schema (Order, User)."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related GraphQL contributions."
         }
     },
     "requires": [],

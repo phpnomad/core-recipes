@@ -1,14 +1,63 @@
 {
     "name": "table",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Database table schema declared in PHP — column types, constraints, foreign keys, defined as code.",
     "description": "Creates a database table definition class",
+    "problem": "You need a database table to back an entity, declared in code (not raw SQL or external migration files) so the schema is versioned with the codebase, statically inspectable, and consistent with the framework's data layer.",
+    "appliesWhen": [
+        "An entity needs persistent storage in a relational database",
+        "You want the schema definition versioned alongside the code that uses it",
+        "Multiple environments need the same schema applied predictably",
+        "You want indexes and foreign keys to be discoverable by introspection tools"
+    ],
+    "avoidWhen": [
+        "The data is non-relational or schemaless (use a key-value store)",
+        "You're integrating with an existing database where schema is owned by another team",
+        "You only need transient storage (use a cache or transient store)"
+    ],
+    "synonyms": {
+        "general": ["table schema", "schema definition", "DDL", "database schema", "table class"],
+        "wordpress": ["custom table", "wpdb table", "dbDelta schema"],
+        "laravel": ["migration", "schema builder"],
+        "rails": ["migration", "schema"]
+    },
+    "examples": [
+        "Define an orders table",
+        "Add a database table for subscriptions",
+        "I need a payouts table",
+        "Set up the schema for storing audit logs"
+    ],
+    "tags": ["data", "database", "schema", "core"],
+    "tradeoffs": "One class per table keeps schema discoverable but adds a file. Schema lives in PHP, not SQL — easier to refactor, but unfamiliar to DBAs.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/database-handler", "relationship": "consumes-this-schema"},
+        {"recipe": "phpnomad/database-datastore", "relationship": "composite-that-includes-this"},
+        {"recipe": "phpnomad/datastore", "relationship": "abstract-layer-this-supports"}
+    ],
+    "outputs": [
+        "A {name} class extending the Table abstract",
+        "A getTableName() returning {tableName}",
+        "Stub getColumns() and getIndexes() methods to fill in"
+    ],
+    "postApply": [
+        "Define columns in getColumns() with types, nullability, and defaults",
+        "Add indexes (including primary key) in getIndexes()",
+        "Pair with phpnomad/database-handler if backing a datastore",
+        "Run your project's migration tooling to apply the schema"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Table class name (e.g. UsersTable)"
+            "description": "Table class name (e.g. UsersTable)",
+            "example": "OrdersTable",
+            "aiHint": "PascalCase ending in 'Table'. Plural noun matching the table name (UsersTable for users)."
         },
         "tableName": {
             "type": "string",
-            "description": "Database table name (e.g. users)"
+            "description": "Database table name (e.g. users)",
+            "example": "orders",
+            "aiHint": "snake_case, plural. The actual SQL table name (no prefix — the framework handles platform prefixing)."
         }
     },
     "requires": [],

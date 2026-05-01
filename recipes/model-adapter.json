@@ -1,14 +1,59 @@
 {
     "name": "model-adapter",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Two-way translator between a model and its array representation, for storage and transport.",
     "description": "Creates a model adapter for converting between models and arrays",
+    "problem": "Your model is a typed in-memory shape, but storage and transport (JSON, database rows, queue messages) speak associative arrays. You need a single, well-named place to hold that translation in both directions.",
+    "appliesWhen": [
+        "A model needs to flow into storage as rows or out as JSON/array data",
+        "You want one canonical translation point instead of scattered conversion logic",
+        "Both directions of the conversion are needed (read and write)",
+        "The shape is stable enough to encode once"
+    ],
+    "avoidWhen": [
+        "Conversion only happens in one direction (use a one-way mapper or builder)",
+        "The model's array form is identical to its properties — no translation needed",
+        "You're converting between two different domain types — that's not an adapter, that's a transform"
+    ],
+    "synonyms": {
+        "general": ["adapter", "translator", "mapper", "two-way converter", "serializer/deserializer"],
+        "laravel": ["resource + factory pair"],
+        "rest": ["serializer", "transformer"]
+    },
+    "examples": [
+        "Add an adapter for the Order model",
+        "I need to serialize a Subscription to and from arrays",
+        "Create a translator between Payout objects and DB rows"
+    ],
+    "tags": ["data", "core", "adapter"],
+    "tradeoffs": "One file dedicated to bidirectional conversion. Adds a step between model and storage but keeps that logic in one place. Convention is one adapter per model — uniformity over per-context customization.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/model", "relationship": "the-typed-shape-this-translates"},
+        {"recipe": "phpnomad/database-handler", "relationship": "consumer-of-this-adapter"},
+        {"recipe": "phpnomad/database-datastore", "relationship": "composite-that-includes-this"}
+    ],
+    "outputs": [
+        "A {name} adapter class with toArray() and fromArray() conversions",
+        "References to the model FQCN for type safety"
+    ],
+    "postApply": [
+        "Implement toArray() for the read path (model -> array)",
+        "Implement fromArray() for the write path (array -> model)",
+        "Make sure both directions cover the same fields"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Adapter class name (e.g. PayoutAdapter)"
+            "description": "Adapter class name (e.g. PayoutAdapter)",
+            "example": "OrderAdapter",
+            "aiHint": "PascalCase, ending in 'Adapter'. Convention is {ModelName}Adapter."
         },
         "model": {
             "type": "string",
-            "description": "FQCN of the model class"
+            "description": "FQCN of the model class",
+            "example": "App\\Models\\Order",
+            "aiHint": "Use the FQCN of the model class (created by phpnomad/model). Convention is {namespace}\\Models\\{name}."
         }
     },
     "requires": [],

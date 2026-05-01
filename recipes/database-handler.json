@@ -1,30 +1,85 @@
 {
     "name": "database-handler",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Database-backed implementation of a datastore handler, bridging a datastore to a SQL table.",
     "description": "Creates a database datastore handler that implements a datastore handler interface",
+    "problem": "You have a datastore interface defined and you need to wire it up to an actual database table — translating model objects to rows on write, and rows back to models on read.",
+    "appliesWhen": [
+        "You already have a datastore (phpnomad/datastore) needing a backing implementation",
+        "You have a database table (phpnomad/table) and a model (phpnomad/model) to bridge",
+        "The data lives in a relational database accessed via PHPNomad's DatabaseStrategy",
+        "You want CRUD operations bridged through a model adapter for type safety"
+    ],
+    "avoidWhen": [
+        "The datastore handler should hit a non-database backend (write a custom handler)",
+        "You don't have a model adapter or table yet (use phpnomad/database-datastore for the full bundle)",
+        "The data lives in an external API (write a service, not a database handler)"
+    ],
+    "synonyms": {
+        "general": ["database adapter", "database backend", "DB-backed datastore", "ORM-style handler"],
+        "laravel": ["eloquent repository implementation"],
+        "wordpress": ["wpdb-backed handler"]
+    },
+    "examples": [
+        "Wire the OrderDatastore to the orders table",
+        "Add database persistence for the existing PayoutDatastore",
+        "Implement the storage layer for SubscriptionDatastoreHandler"
+    ],
+    "tags": ["data", "database", "core", "persistence"],
+    "tradeoffs": "Requires the datastore, model, model-adapter, and table to all exist already. Typically used through phpnomad/database-datastore which scaffolds them together. Stand-alone use is fine when the others already exist.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "interface-this-implements"},
+        {"recipe": "phpnomad/table", "relationship": "schema-this-reads-and-writes"},
+        {"recipe": "phpnomad/model", "relationship": "the-typed-shape-this-returns"},
+        {"recipe": "phpnomad/model-adapter", "relationship": "translator-between-rows-and-models"},
+        {"recipe": "phpnomad/database-datastore", "relationship": "composite-that-includes-this"}
+    ],
+    "outputs": [
+        "A {name}DatabaseDatastoreHandler class implementing the datastore handler interface",
+        "A DI binding mapping the handler implementation to the handler interface"
+    ],
+    "postApply": [
+        "Verify the binding via `phpnomad inspect:di`",
+        "Smoke test reads and writes against the database",
+        "Add domain query methods to the handler if needed beyond CRUD"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Entity name (e.g. Payout)"
+            "description": "Entity name (e.g. Payout)",
+            "example": "Order",
+            "aiHint": "Singular PascalCase entity name. Match the name used by the related datastore, model, and table."
         },
         "handlerInterface": {
             "type": "string",
-            "description": "FQCN of the datastore handler interface"
+            "description": "FQCN of the datastore handler interface",
+            "example": "App\\Datastores\\Order\\Interfaces\\OrderDatastoreHandler",
+            "aiHint": "Use the handler interface created by phpnomad/datastore. The convention is {namespace}\\Datastores\\{name}\\Interfaces\\{name}DatastoreHandler."
         },
         "model": {
             "type": "string",
-            "description": "FQCN of the model class"
+            "description": "FQCN of the model class",
+            "example": "App\\Models\\Order",
+            "aiHint": "Use the model class created by phpnomad/model. Convention is {namespace}\\Models\\{name}."
         },
         "modelAdapter": {
             "type": "string",
-            "description": "FQCN of the model adapter class"
+            "description": "FQCN of the model adapter class",
+            "example": "App\\Models\\Adapters\\OrderAdapter",
+            "aiHint": "Use the adapter class created by phpnomad/model-adapter. Convention is {namespace}\\Models\\Adapters\\{name}Adapter."
         },
         "table": {
             "type": "string",
-            "description": "FQCN of the table class"
+            "description": "FQCN of the table class",
+            "example": "App\\Tables\\OrdersTable",
+            "aiHint": "Use the table class created by phpnomad/table. Convention is {namespace}\\Tables\\{name}sTable (plural)."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register DI binding in"
+            "description": "FQCN of the initializer to register DI binding in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns the related datastore. Same one you used for phpnomad/datastore."
         }
     },
     "requires": [

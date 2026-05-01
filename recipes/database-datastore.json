@@ -1,18 +1,75 @@
 {
     "name": "database-datastore",
+    "kind": "composite",
+    "stability": "stable",
+    "summary": "Full database-backed entity stack: datastore, table, model, adapter, and DB handler in one shot.",
     "description": "Creates a full database-backed datastore: interface, handler interface, implementation, model, adapter, table, and database handler",
+    "problem": "You have a new entity that needs CRUD against a database table and you want the entire idiomatic PHPNomad stack scaffolded in one shot — typed model, table schema, adapter, datastore interface and implementation, and the database-backed handler that ties them together.",
+    "appliesWhen": [
+        "You're starting a new entity that will live in the database",
+        "You want the conventional PHPNomad data layer end-to-end with no gaps",
+        "You have a stable schema in mind for the entity",
+        "You want one command that produces a working baseline you can flesh out"
+    ],
+    "avoidWhen": [
+        "You only need part of the stack — use the individual recipes instead",
+        "The data is non-relational or session-scoped",
+        "You're integrating with an existing schema you don't control",
+        "You already have a datastore and just need to swap storage — use phpnomad/database-handler alone"
+    ],
+    "synonyms": {
+        "general": ["full data layer", "entity scaffold", "CRUD scaffold", "complete data stack"],
+        "laravel": ["full model + migration + repository scaffold"],
+        "rails": ["scaffold (model + migration + controller-less)"]
+    },
+    "examples": [
+        "Set up everything I need to store orders in the database",
+        "Scaffold a full data layer for tracking subscriptions",
+        "Bootstrap CRUD for payouts with a database table",
+        "Create the entire data stack for a new entity"
+    ],
+    "tags": ["data", "database", "crud", "core", "composite"],
+    "tradeoffs": "Generates seven files plus registrations in one command. Fast to bootstrap, but you'll be editing a lot of TODOs. Use the smaller recipes when you only need part of the stack.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "child-recipe"},
+        {"recipe": "phpnomad/table", "relationship": "child-recipe"},
+        {"recipe": "phpnomad/model", "relationship": "child-recipe"},
+        {"recipe": "phpnomad/model-adapter", "relationship": "child-recipe"},
+        {"recipe": "phpnomad/database-handler", "relationship": "child-recipe"}
+    ],
+    "outputs": [
+        "A {name} model class",
+        "A {name}Adapter model adapter",
+        "A {name}sTable table schema",
+        "A {name}Datastore class plus its public and handler interfaces",
+        "A {name}DatabaseDatastoreHandler implementation",
+        "DI bindings tying it all together"
+    ],
+    "postApply": [
+        "Fill in columns on the {name}sTable schema",
+        "Define properties on the {name} model",
+        "Implement the adapter's toArray/fromArray translations",
+        "Run migrations to create the actual table",
+        "Smoke test reads and writes through the datastore"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Entity name (e.g. Payout)"
+            "description": "Entity name (e.g. Payout)",
+            "example": "Order",
+            "aiHint": "Singular PascalCase. The shared name used across all the generated files."
         },
         "tableName": {
             "type": "string",
-            "description": "Database table name (e.g. payouts)"
+            "description": "Database table name (e.g. payouts)",
+            "example": "orders",
+            "aiHint": "snake_case, plural. The actual SQL table name."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register DI bindings in"
+            "description": "FQCN of the initializer to register DI bindings in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related data-layer bindings. If unsure, use the project's root initializer."
         }
     },
     "requires": [
@@ -22,34 +79,34 @@
     "registrations": [],
     "recipes": [
         {
-            "recipe": "model",
+            "recipe": "phpnomad/model",
             "vars": {
                 "name": "{{name}}"
             }
         },
         {
-            "recipe": "model-adapter",
+            "recipe": "phpnomad/model-adapter",
             "vars": {
                 "name": "{{name}}Adapter",
                 "model": "{{rootNamespace}}\\Models\\{{name}}"
             }
         },
         {
-            "recipe": "table",
+            "recipe": "phpnomad/table",
             "vars": {
                 "name": "{{name}}sTable",
                 "tableName": "{{tableName}}"
             }
         },
         {
-            "recipe": "datastore",
+            "recipe": "phpnomad/datastore",
             "vars": {
                 "name": "{{name}}",
                 "initializer": "{{initializer}}"
             }
         },
         {
-            "recipe": "database-handler",
+            "recipe": "phpnomad/database-handler",
             "vars": {
                 "name": "{{name}}",
                 "handlerInterface": "{{rootNamespace}}\\Datastores\\{{name}}\\Interfaces\\{{name}}DatastoreHandler",

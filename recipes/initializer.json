@@ -1,10 +1,56 @@
 {
     "name": "initializer",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Module-level boot class that contributes DI bindings, controllers, listeners, and more.",
     "description": "Creates an initializer class with DI bindings",
+    "problem": "Your application is growing past a single bootstrap and you want a dedicated initializer for a domain (payments, billing, integrations) that owns the bindings, controllers, listeners, and other contributions for that area.",
+    "appliesWhen": [
+        "A new domain or feature module is being added to the application",
+        "You want bindings and contributions for that domain grouped in one place",
+        "Other recipes in this domain will register against this initializer",
+        "You're refactoring a sprawling AppInit into per-domain initializers"
+    ],
+    "avoidWhen": [
+        "The application is still small enough that AppInit is fine",
+        "You're adding one or two bindings — extend an existing initializer instead",
+        "You don't have enough domain logic to justify a module"
+    ],
+    "synonyms": {
+        "general": ["module bootstrap", "feature initializer", "domain initializer", "service provider"],
+        "laravel": ["service provider"],
+        "symfony": ["bundle"],
+        "wordpress": ["plugin module"]
+    },
+    "examples": [
+        "Add an initializer for the payments module",
+        "Set up a billing initializer",
+        "Create a module bootstrap for the integrations area",
+        "I need a per-domain initializer for the orders feature"
+    ],
+    "tags": ["core", "module", "boot"],
+    "tradeoffs": "One class with empty contribution methods. Useful when contributions accumulate; overkill when they don't. Other recipes will modify it via AST mutations — that's the design.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/listener", "relationship": "registers-against-this"},
+        {"recipe": "phpnomad/controller", "relationship": "registers-against-this"},
+        {"recipe": "phpnomad/command", "relationship": "registers-against-this"},
+        {"recipe": "phpnomad/datastore", "relationship": "registers-against-this"}
+    ],
+    "outputs": [
+        "A {name} class implementing CanSetContainer",
+        "Empty Has* contribution methods to be extended by other recipes"
+    ],
+    "postApply": [
+        "Wire the initializer into your Application's boot sequence",
+        "Use other recipes (listener, controller, datastore, etc.) to add contributions — they will modify this class via AST mutation",
+        "Verify via `phpnomad inspect:di` that the initializer is part of the boot graph"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Initializer class name (e.g. PayoutInitializer)"
+            "description": "Initializer class name (e.g. PayoutInitializer)",
+            "example": "PaymentsInitializer",
+            "aiHint": "PascalCase ending in 'Initializer' or 'Init'. Name describes the domain it owns (PaymentsInitializer, BillingInit)."
         }
     },
     "requires": [],

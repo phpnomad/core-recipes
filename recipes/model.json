@@ -1,10 +1,53 @@
 {
     "name": "model",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Plain typed data class for an entity, with identity — the value object passed around the system.",
     "description": "Creates a data model class with identity support",
+    "problem": "You need a typed in-memory representation of an entity to flow through your application — something the data layer hydrates, that controllers serialize, and that listeners can introspect.",
+    "appliesWhen": [
+        "An entity needs a typed shape used across the system",
+        "You want consumers to treat it as immutable data, not a database row",
+        "You need a stable place to hang typed properties for the entity",
+        "You want compiler/IDE-friendly access (no associative arrays floating around)"
+    ],
+    "avoidWhen": [
+        "You don't need a typed shape — the data is consumed once and discarded",
+        "The shape is highly dynamic per record (use an array or object with __get)",
+        "You're storing config or settings (use a config object, not a model)"
+    ],
+    "synonyms": {
+        "general": ["data model", "value object", "DTO", "entity class", "typed record"],
+        "laravel": ["model class (without ORM)"],
+        "wordpress": ["typed entity", "post-meta-shaped object"]
+    },
+    "examples": [
+        "Add a model for orders",
+        "I need a typed Order class",
+        "Create a value object for subscriptions",
+        "Define the shape of a Payout"
+    ],
+    "tags": ["data", "core", "model"],
+    "tradeoffs": "One small file. Without persistence wiring it's just a data class — pair with phpnomad/datastore (or phpnomad/database-datastore for the full stack) when you need storage.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/model-adapter", "relationship": "translator-between-rows-and-this"},
+        {"recipe": "phpnomad/datastore", "relationship": "data-layer-that-returns-this"},
+        {"recipe": "phpnomad/database-datastore", "relationship": "composite-that-includes-this"}
+    ],
+    "outputs": [
+        "A {name} model class with identity helpers",
+        "Stub typed property declarations to fill in"
+    ],
+    "postApply": [
+        "Add typed properties for each field on the entity",
+        "Pair with phpnomad/model-adapter and phpnomad/database-handler if backing this with a database"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Model class name (e.g. Payout)"
+            "description": "Model class name (e.g. Payout)",
+            "example": "Order",
+            "aiHint": "Singular PascalCase. No 'Model' suffix — naming is canonical (Order, not OrderModel)."
         }
     },
     "requires": [],

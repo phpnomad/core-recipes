@@ -1,18 +1,64 @@
 {
     "name": "mutation",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Action-keyed handler that processes a named mutation, dispatched by action string.",
     "description": "Creates a mutation handler and registers it in an initializer",
+    "problem": "You have a system that takes action commands (create, update, archive, refund) by name, and you want each command to live in its own class — discoverable, testable, with no giant dispatch switch.",
+    "appliesWhen": [
+        "Your system processes named state-change actions (often from queues or external commands)",
+        "Each action has its own validation and side effects",
+        "You want a registry of actions you can introspect and extend",
+        "The action set is mostly stable across the lifetime of the feature"
+    ],
+    "avoidWhen": [
+        "The action is an HTTP request — use phpnomad/controller",
+        "It's a one-off CLI script — use phpnomad/command",
+        "The dispatching system isn't named-action-based — write a plain service"
+    ],
+    "synonyms": {
+        "general": ["mutation handler", "command handler", "action handler", "named operation"],
+        "ddd": ["command handler"],
+        "graphql": ["mutation resolver"]
+    },
+    "examples": [
+        "Add a CreateUser mutation handler",
+        "Handle the refund action via a mutation",
+        "Add a mutation for archiving subscriptions"
+    ],
+    "tags": ["core", "mutations", "actions"],
+    "tradeoffs": "One handler per action means a lot of files in busy systems, but each one is small and testable.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/event", "relationship": "often-fired-from-mutations"},
+        {"recipe": "phpnomad/datastore", "relationship": "common-dependency-for-mutations"}
+    ],
+    "outputs": [
+        "A {name} mutation handler class registered for action '{action}'",
+        "A registration in the initializer's getMutations() list"
+    ],
+    "postApply": [
+        "Implement the handler's process method with the actual logic",
+        "Decide if this mutation should fire an event when it completes (often: yes)",
+        "Wire validation if the action takes structured input"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Mutation handler class name (e.g. CreateUserMutation)"
+            "description": "Mutation handler class name (e.g. CreateUserMutation)",
+            "example": "CreateUserMutation",
+            "aiHint": "Verb-noun PascalCase ending in 'Mutation'. The class name describes what it does (CreateUserMutation, ArchiveSubscriptionMutation)."
         },
         "action": {
             "type": "string",
-            "description": "Action name this mutation handles (e.g. create)"
+            "description": "Action name this mutation handles (e.g. create)",
+            "example": "user.create",
+            "aiHint": "lowercase, dot-separated. Convention is {entity}.{action} (user.create, subscription.archive)."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related mutations for this domain."
         }
     },
     "requires": [],

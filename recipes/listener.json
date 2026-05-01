@@ -1,21 +1,69 @@
 {
     "name": "listener",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Side-effect handler that runs whenever a specific event is dispatched.",
     "description": "Creates an event listener and registers it in an initializer",
+    "problem": "You want some logic (send a welcome email, update an analytics counter, invalidate a cache) to run whenever a specific event happens, but you do not want the dispatcher of that event to know or care about the side effect.",
+    "appliesWhen": [
+        "Something else has already emitted an event you want to react to",
+        "The reaction is a side effect (notification, analytics, cache invalidation, downstream sync)",
+        "You want the event producer to stay decoupled from this consumer",
+        "Multiple listeners may want to react to the same event"
+    ],
+    "avoidWhen": [
+        "The behavior is part of the producing flow's core logic — call it directly",
+        "You actually need a request/response pattern — listeners are fire-and-forget",
+        "The reaction needs ordering guarantees relative to other listeners — use an explicit pipeline",
+        "There is no event yet — author the event first via phpnomad/event"
+    ],
+    "synonyms": {
+        "general": ["event listener", "event handler", "subscriber", "observer", "hook handler"],
+        "wordpress": ["action callback", "hook handler", "do_action consumer"],
+        "laravel": ["event listener", "event subscriber"],
+        "node": ["event handler", "emitter listener"]
+    },
+    "examples": [
+        "Send a welcome email when a user is created",
+        "Increment a counter when an order is placed",
+        "Invalidate the dashboard cache when a payout completes",
+        "Notify Slack when a deployment finishes"
+    ],
+    "tags": ["events", "core", "side-effects"],
+    "tradeoffs": "One new file plus a registration entry. Decouples producers from consumers but adds indirection — debugging requires knowing what listens to a given event (use `phpnomad inspect:di` to see the wiring).",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/event", "relationship": "the-event-this-listens-to"},
+        {"recipe": "phpnomad/task", "relationship": "alternative-when-async-execution-needed"}
+    ],
+    "outputs": [
+        "A {name} listener class implementing the appropriate Listener interface",
+        "A registration mapping the event class to this listener in the initializer"
+    ],
+    "postApply": [
+        "Implement the listener's handle method with the side-effect logic",
+        "If the event class does not exist yet, scaffold it with phpnomad/event",
+        "Confirm the registration via `phpnomad inspect:di`"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Listener class name (e.g. SendWelcomeEmail)"
+            "description": "Listener class name (e.g. SendWelcomeEmail)",
+            "example": "SendWelcomeEmail",
+            "aiHint": "Name should describe what the listener does, in imperative form. PascalCase. Not the event name — the action."
         },
         "event": {
             "type": "string",
-            "description": "FQCN of the event class to listen to"
+            "description": "FQCN of the event class to listen to",
+            "example": "App\\Events\\UserCreated",
+            "aiHint": "Use the fully qualified class name of an existing event. If the event does not exist yet, scaffold it first via phpnomad/event."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related listeners for this domain. If unsure, use the project's root initializer."
         }
     },
-    "requires": [],
     "files": [
         {
             "path": "lib/Listeners/{{name}}.php",

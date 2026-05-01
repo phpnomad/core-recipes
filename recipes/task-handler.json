@@ -1,18 +1,63 @@
 {
     "name": "task-handler",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Worker that executes a queued task, receiving its typed payload and running the actual work.",
     "description": "Creates a task handler and registers it in an initializer",
+    "problem": "You've defined a task that gets queued, and now you need the worker that actually does the work — receiving the typed task payload, running side effects, and surfacing results or failures so the queue can retry intelligently.",
+    "appliesWhen": [
+        "A task class already exists (created via phpnomad/task)",
+        "You're ready to define what happens when the task runs",
+        "You want the worker logic isolated from the dispatcher"
+    ],
+    "avoidWhen": [
+        "The task class doesn't exist yet — create it first via phpnomad/task",
+        "The work is synchronous and request-bound — don't use a task pipeline",
+        "You're handling many similar tasks with shared logic — consider one handler per task type still, but extract shared logic into a service"
+    ],
+    "synonyms": {
+        "general": ["task worker", "job handler", "async worker", "queue worker"],
+        "laravel": ["job handler"],
+        "rails": ["active job perform method"]
+    },
+    "examples": [
+        "Add a handler for the SendWelcomeEmail task",
+        "I need a worker that processes the SyncOrderToWarehouse task",
+        "Create the handler that runs the GenerateMonthlyReport task"
+    ],
+    "tags": ["core", "async", "queue", "tasks"],
+    "tradeoffs": "Pairing of task + handler doubles the file count for an async unit of work. The split keeps payload separate from execution, which makes both halves easier to test.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/task", "relationship": "task-this-handles"},
+        {"recipe": "phpnomad/datastore", "relationship": "common-dependency-for-handlers"}
+    ],
+    "outputs": [
+        "A {name} task handler class implementing the appropriate handler interface",
+        "A registration mapping the task class to this handler in the initializer"
+    ],
+    "postApply": [
+        "Implement the handler's handle() method with the actual worker logic",
+        "Decide how failures should signal retry-vs-give-up to the queue",
+        "Confirm the registration via `phpnomad inspect:di`"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Handler class name (e.g. SendEmailHandler)"
+            "description": "Handler class name (e.g. SendEmailHandler)",
+            "example": "SendWelcomeEmailHandler",
+            "aiHint": "PascalCase ending in 'Handler'. Convention is {TaskName}Handler."
         },
         "task": {
             "type": "string",
-            "description": "FQCN of the task class to handle"
+            "description": "FQCN of the task class to handle",
+            "example": "App\\Tasks\\SendWelcomeEmail",
+            "aiHint": "Use the FQCN of an existing task class (created via phpnomad/task)."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related task handlers for this domain."
         }
     },
     "requires": [],

@@ -1,22 +1,72 @@
 {
     "name": "command",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "CLI command exposed to operators with a signature, description, and handle() entry point.",
     "description": "Creates a CLI command and registers it in an initializer",
+    "problem": "You want operators (developers, deploy scripts, ops staff) to trigger an action from the terminal — running a migration, syncing data, kicking off a one-off process — with proper argument parsing and help output.",
+    "appliesWhen": [
+        "An operator needs to trigger this action from the terminal",
+        "The action benefits from arguments and options with help text",
+        "It runs to completion in one shot (not a long-running daemon)",
+        "It's a maintenance, ops, or data task — not user-facing"
+    ],
+    "avoidWhen": [
+        "End users will trigger this — use phpnomad/controller for HTTP",
+        "It runs continuously or in response to events — use phpnomad/task",
+        "It's invoked programmatically by other PHP code — make it a plain service",
+        "It's a one-time script that won't be re-run — just write the script"
+    ],
+    "synonyms": {
+        "general": ["CLI command", "console command", "shell command", "terminal command", "ops script"],
+        "wordpress": ["WP-CLI command", "wp command"],
+        "laravel": ["artisan command"],
+        "symfony": ["console command"]
+    },
+    "examples": [
+        "Add a deploy command",
+        "Create a CLI tool to sync subscriptions",
+        "Add a console command that backfills order data",
+        "I need a wp-cli command to clear a cache"
+    ],
+    "tags": ["cli", "console", "ops", "core"],
+    "tradeoffs": "One class per command keeps each focused but produces more files than a single big script. Argument parsing handled via the signature DSL — straightforward but learn-once.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/task", "relationship": "alternative-for-event-driven-or-async"},
+        {"recipe": "phpnomad/datastore", "relationship": "common-dependency-for-data-operations"}
+    ],
+    "outputs": [
+        "A {name} command class with getSignature(), getDescription(), and handle() methods",
+        "A registration adding the command to the initializer's getCommands() list"
+    ],
+    "postApply": [
+        "Implement handle() with the actual command logic",
+        "Test by running `<your-cli-binary> <command-name>` after composer dump-autoload"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Command class name (e.g. DeployCommand)"
+            "description": "Command class name (e.g. DeployCommand)",
+            "example": "DeployCommand",
+            "aiHint": "PascalCase, ending in 'Command'. Class name describes what it does (DeployCommand, BackfillOrdersCommand)."
         },
         "signature": {
             "type": "string",
-            "description": "Command signature (e.g. deploy {env:Target environment})"
+            "description": "Command signature (e.g. deploy {env:Target environment})",
+            "example": "deploy {env:Target environment} {--dry-run=:Skip side effects}",
+            "aiHint": "First token is the command name (kebab-case). Use {arg:description} for arguments, {--option=default:description} for options. Trailing ? on an arg makes it optional."
         },
         "description": {
             "type": "string",
-            "description": "Short description for help output"
+            "description": "Short description for help output",
+            "example": "Deploy the application to a target environment",
+            "aiHint": "One sentence, imperative. Shown when listing commands. Don't repeat the command name."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related commands. If unsure, use the project's root initializer."
         }
     },
     "requires": [],

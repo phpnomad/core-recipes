@@ -1,18 +1,65 @@
 {
     "name": "facade",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Static-style accessor that proxies a DI-bound interface from non-injectable call sites.",
     "description": "Creates a facade class that proxies an interface",
+    "problem": "You have an interface bound in the container, but some call sites (legacy templates, third-party hooks, global helper functions) can't receive constructor injection. You want a clean, static-feeling way to call into that interface without breaking encapsulation.",
+    "appliesWhen": [
+        "An interface needs to be reachable from non-injectable contexts",
+        "You're integrating with a framework that calls into your code without DI (WordPress hooks, view templates, some legacy bridges)",
+        "You want explicit, named access points instead of service-locator style lookups",
+        "The call surface is small enough that a facade is cleaner than refactoring the call sites"
+    ],
+    "avoidWhen": [
+        "The call site can take constructor injection — just inject the interface directly",
+        "You're tempted to use a facade because DI feels like too much setup — that's a code smell",
+        "The proxy would expose every method on the interface — that's a sign DI is the right answer"
+    ],
+    "synonyms": {
+        "general": ["facade", "service locator entry", "static proxy", "global accessor"],
+        "laravel": ["facade"],
+        "symfony": ["service alias with static helper"]
+    },
+    "examples": [
+        "Add a Transactions facade for the payment service",
+        "Create a static-style accessor for the Mailer interface",
+        "I need to call the cache from a WordPress hook without injecting it"
+    ],
+    "tags": ["core", "facade", "di"],
+    "tradeoffs": "Adds a layer of indirection. Convenient for awkward call sites, easy to overuse. Prefer constructor injection where possible.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "common-target-of-facade"},
+        {"recipe": "phpnomad/initializer", "relationship": "where-this-registers"}
+    ],
+    "outputs": [
+        "A {name} facade class extending Facade and proxying the named interface",
+        "An abstractInstance() method returning the interface FQCN",
+        "A registration in the initializer's getFacades() list"
+    ],
+    "postApply": [
+        "Add typed static helper methods for the most-used interface methods, if you want IDE help",
+        "Verify the binding via `phpnomad inspect:di`",
+        "Confirm the facade resolves at runtime by calling it from the intended consumer"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Facade class name (e.g. Transactions)"
+            "description": "Facade class name (e.g. Transactions)",
+            "example": "Transactions",
+            "aiHint": "PascalCase, plural or domain-flavored. Describes what the facade exposes (Transactions, Mailer, Cache)."
         },
         "interface": {
             "type": "string",
-            "description": "FQCN of the interface to proxy"
+            "description": "FQCN of the interface to proxy",
+            "example": "App\\Services\\Interfaces\\TransactionService",
+            "aiHint": "Fully qualified interface name. The interface must already be DI-bound somewhere."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns the underlying interface binding."
         }
     },
     "requires": [],

@@ -1,14 +1,60 @@
 {
     "name": "task",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Queueable unit of work with a stable ID and typed payload, executed by its handler.",
     "description": "Creates a task class with a unique runtime ID",
+    "problem": "You have work that doesn't need to happen inside the request — sending an email, calling an external API, running a slow report — and you want a typed, named unit you can queue, retry, and monitor without coupling the producer to the worker.",
+    "appliesWhen": [
+        "The work can run outside the producing request",
+        "Failure should be retryable independent of the producing context",
+        "Payload is a fixed shape that travels through a queue",
+        "You want runtime introspection (queue depth, retry counts) per task type"
+    ],
+    "avoidWhen": [
+        "The work must complete before responding to the user — run it inline",
+        "It's a one-time CLI ops task — use phpnomad/command",
+        "The reaction is fire-and-forget with no payload — use phpnomad/event + phpnomad/listener"
+    ],
+    "synonyms": {
+        "general": ["job", "background task", "queued task", "async work", "deferred work"],
+        "laravel": ["job"],
+        "rails": ["active job"],
+        "wordpress": ["wp-cron task", "scheduled job"]
+    },
+    "examples": [
+        "Add a task to send a welcome email asynchronously",
+        "Queue a task that syncs an order to the warehouse system",
+        "Create a background job for generating monthly reports"
+    ],
+    "tags": ["core", "async", "queue", "tasks"],
+    "tradeoffs": "Adds a queueing layer compared to inline execution. Worth it when the work is slow or unreliable; overkill when it isn't.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/task-handler", "relationship": "the-worker-that-executes-this"},
+        {"recipe": "phpnomad/event", "relationship": "alternative-for-fire-and-forget"}
+    ],
+    "outputs": [
+        "A {name} task class implementing the Task interface",
+        "A static getId() method returning {taskId}",
+        "Stub typed payload properties to fill in"
+    ],
+    "postApply": [
+        "Add typed properties for the task payload",
+        "Pair with phpnomad/task-handler to define the worker logic",
+        "Wire the dispatch from the producer side once both halves exist"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Task class name (e.g. SendEmail)"
+            "description": "Task class name (e.g. SendEmail)",
+            "example": "SendWelcomeEmail",
+            "aiHint": "Verb-noun PascalCase. Describe what the task does (SendWelcomeEmail, SyncOrderToWarehouse)."
         },
         "taskId": {
             "type": "string",
-            "description": "Unique task identifier (e.g. email.send)"
+            "description": "Unique task identifier (e.g. email.send)",
+            "example": "email.welcome.send",
+            "aiHint": "Lowercase, dot-separated, namespace-prefixed. Must be unique across the project."
         }
     },
     "requires": [],

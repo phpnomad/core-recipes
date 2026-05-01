@@ -1,22 +1,76 @@
 {
     "name": "controller",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "REST endpoint handler that maps an HTTP method and path to a single controller class.",
     "description": "Creates a REST controller and registers it in an initializer",
+    "problem": "You want to expose an action over HTTP — a single endpoint that takes a request, does work, and returns a response — without sprawling routing files or framework-specific glue.",
+    "appliesWhen": [
+        "You need to expose a single piece of functionality over HTTP",
+        "The action maps cleanly to one HTTP method on one path",
+        "You want the route, validation, and middleware to live with the handler",
+        "Consumers are external (frontend, mobile, third party) or internal API clients"
+    ],
+    "avoidWhen": [
+        "The action is internal-only and called by other PHP code (use a service class)",
+        "You need a GraphQL operation (use phpnomad/graphql-type)",
+        "You need a CLI entry point (use phpnomad/command)",
+        "You're building a long-running task triggered by a job queue (use phpnomad/task)"
+    ],
+    "synonyms": {
+        "general": ["REST endpoint", "API endpoint", "HTTP handler", "route handler", "API controller"],
+        "wordpress": ["REST API endpoint", "register_rest_route handler"],
+        "laravel": ["controller action", "single-action controller", "invokable controller"],
+        "express": ["route handler"]
+    },
+    "examples": [
+        "I need a GET /users endpoint",
+        "Add a POST endpoint to create an order",
+        "Expose a DELETE endpoint for removing a subscription",
+        "Add an API route to list subscriptions for a user"
+    ],
+    "tags": ["http", "rest", "api", "routing", "core"],
+    "tradeoffs": "One controller per endpoint by design — discoverable and testable, but produces more files than route-list-style frameworks. Capabilities (middleware, validation, interceptors) plug in via traits, not config.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "common-dependency-for-data-access"},
+        {"recipe": "phpnomad/graphql-type", "relationship": "alternative-for-graphql-apis"},
+        {"recipe": "phpnomad/event", "relationship": "fired-from-controllers-on-state-change"}
+    ],
+    "outputs": [
+        "A {name} controller class with a handle() method",
+        "A registration adding the controller to the initializer's getControllers() list",
+        "Default routing: {method} {endpoint}"
+    ],
+    "postApply": [
+        "Implement handle() with the actual request processing",
+        "Add middleware, validations, or interceptors via the WithMiddleware/WithValidations/WithInterceptors traits",
+        "If the path needs the runtime API base, use the WithEndpointBase trait",
+        "Verify the route shows up via `phpnomad inspect:routes`"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Controller class name (e.g. GetUsers)"
+            "description": "Controller class name (e.g. GetUsers)",
+            "example": "GetUsers",
+            "aiHint": "Verb-noun PascalCase describing the action (GetUsers, CreateOrder, DeleteSubscription). One controller per action."
         },
         "method": {
             "type": "string",
-            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH)"
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH)",
+            "example": "GET",
+            "aiHint": "Uppercase HTTP verb. GET for reads, POST for creates, PUT/PATCH for updates, DELETE for removals."
         },
         "endpoint": {
             "type": "string",
-            "description": "Endpoint path (e.g. /users)"
+            "description": "Endpoint path (e.g. /users)",
+            "example": "/users",
+            "aiHint": "Path-only, leading slash. Use {param} placeholders for path variables (e.g. /users/{id}). Don't include the API base — use WithEndpointBase trait if needed."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register in"
+            "description": "FQCN of the initializer to register in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related controllers for this domain. If unsure, use the project's root initializer."
         }
     },
     "requires": [],

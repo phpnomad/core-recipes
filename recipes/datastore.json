@@ -1,14 +1,64 @@
 {
     "name": "datastore",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Typed CRUD access layer for an entity, with a public interface and a separate storage handler seam.",
     "description": "Creates a datastore with interface, handler interface, and implementation class",
+    "problem": "You have a domain entity that needs persistent storage and you want consistent, typed read/write access from the rest of the app without coupling consumers to the storage implementation.",
+    "appliesWhen": [
+        "You have a stable entity type (Order, Subscription, Payout) that needs persistence",
+        "You want CRUD operations decoupled from the storage backend",
+        "You expect to write tests against this entity's persistence layer",
+        "You want a consistent place for entity-level read/write logic"
+    ],
+    "avoidWhen": [
+        "Data is transient or session-scoped (use a cache or transient store instead)",
+        "Schema is highly dynamic and varies per record (use a key-value store or JSON column instead)",
+        "You only need to read external data, never write (use a service or adapter instead)",
+        "The entity is so simple it does not need its own data layer"
+    ],
+    "synonyms": {
+        "general": ["entity store", "data layer", "repository", "DAO", "model store"],
+        "wordpress": ["data layer for an entity", "model with persistence"],
+        "laravel": ["repository", "model wrapper"]
+    },
+    "examples": [
+        "I need to store customer orders",
+        "Where should the user data layer go",
+        "Set up a model for tracking payouts",
+        "Add persistence for subscription records"
+    ],
+    "tags": ["data", "core", "crud", "persistence"],
+    "tradeoffs": "Three new files plus a DI binding. The handler interface stays empty until paired with a storage implementation (database, in-memory, etc.). Heavier than a single class for very simple cases.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/database-handler", "relationship": "implements-the-handler-interface"},
+        {"recipe": "phpnomad/database-datastore", "relationship": "composite-that-includes-this"},
+        {"recipe": "phpnomad/table", "relationship": "often-paired"},
+        {"recipe": "phpnomad/model", "relationship": "data-shape-companion"}
+    ],
+    "outputs": [
+        "A {name}Datastore class with CRUD methods",
+        "A {name}Datastore interface for consumer typing",
+        "A {name}DatastoreHandler interface for storage implementation",
+        "A DI binding mapping the interface to the implementation"
+    ],
+    "postApply": [
+        "Implement a handler that fulfills {name}DatastoreHandler (use phpnomad/database-handler for a DB-backed one)",
+        "Inject {name}Datastore wherever you need persistent access to the entity",
+        "Add domain-specific query methods to the interface as needs arise"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Entity name (e.g. Payout)"
+            "description": "Entity name (e.g. Payout)",
+            "example": "Order",
+            "aiHint": "Use the singular form of the entity. PascalCase. No suffixes like 'Model', 'Entity', or 'Record'."
         },
         "initializer": {
             "type": "string",
-            "description": "FQCN of the initializer to register DI bindings in"
+            "description": "FQCN of the initializer to register DI bindings in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that already owns related bindings for this domain. If unsure, use the project's root initializer."
         }
     },
     "requires": [],

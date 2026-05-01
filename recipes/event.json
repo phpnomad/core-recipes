@@ -1,14 +1,61 @@
 {
     "name": "event",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Domain event announcing a state change, with a stable runtime ID and typed payload.",
     "description": "Creates an event class with a unique ID",
+    "problem": "Something meaningful just happened in your domain (a user signed up, an order shipped, a payout settled) and you want to broadcast that fact so other parts of the system can react without being directly coupled to the producer.",
+    "appliesWhen": [
+        "A meaningful state change just happened that other code might want to know about",
+        "You want the producer to stay ignorant of who consumes the signal",
+        "You expect zero or more listeners to react to this fact",
+        "The fact is part of your domain vocabulary, not just plumbing"
+    ],
+    "avoidWhen": [
+        "Only one consumer will ever care — call it directly",
+        "You need a return value from the consumer — events are fire-and-forget",
+        "You need ordered, multi-step processing — use an explicit pipeline or saga",
+        "The fact is implementation detail, not domain-relevant"
+    ],
+    "synonyms": {
+        "general": ["domain event", "event", "signal", "notification", "fact"],
+        "wordpress": ["action signal", "do_action source"],
+        "laravel": ["event class"],
+        "node": ["emitted event"]
+    },
+    "examples": [
+        "Add a UserCreated event",
+        "Broadcast that an order was placed",
+        "Announce when a payout has settled",
+        "Fire an event when a deployment finishes"
+    ],
+    "tags": ["events", "core", "domain"],
+    "tradeoffs": "One new class. Strong decoupling but harder to trace at runtime — you have to inspect the listener registry to know what reacts. Use `phpnomad inspect:di` to surface the wiring.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/listener", "relationship": "consumer-of-this-event"},
+        {"recipe": "phpnomad/task", "relationship": "alternative-when-async-needed"}
+    ],
+    "outputs": [
+        "A {name} event class implementing the Event interface",
+        "A static getId() method returning {eventId} as the runtime identifier"
+    ],
+    "postApply": [
+        "Add typed properties for the event's payload (orderId, userEmail, etc.)",
+        "Scaffold listeners with phpnomad/listener if you have consumers ready",
+        "Dispatch the event from wherever the fact actually happens"
+    ],
     "vars": {
         "name": {
             "type": "string",
-            "description": "Event class name (e.g. UserCreated)"
+            "description": "Event class name (e.g. UserCreated)",
+            "example": "OrderPlaced",
+            "aiHint": "Past-tense PascalCase verb describing what happened (UserCreated, not CreateUser; OrderPlaced, not PlaceOrder). The fact, not the action."
         },
         "eventId": {
             "type": "string",
-            "description": "Unique event identifier (e.g. user.created)"
+            "description": "Unique event identifier (e.g. user.created)",
+            "example": "order.placed",
+            "aiHint": "Lowercase, dot-separated, namespace-prefixed. Match the class name in past tense (OrderPlaced -> order.placed). Must be unique across the project."
         }
     },
     "requires": [],
