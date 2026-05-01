@@ -1,0 +1,18 @@
+{
+    "name": "phpnomad/core-recipes",
+    "description": "Core scaffolding recipes for PHPNomad — datastores, controllers, listeners, events, tables, and more. Consumed by phpnomad/cli via composer-based kit discovery.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Standiford",
+            "email": "alex@standiford.us"
+        }
+    ],
+    "extra": {
+        "phpnomad": {
+            "recipes": "recipes/",
+            "templates": "templates/"
+        }
+    }
+}
