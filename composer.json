@@ -10,6 +10,9 @@
         }
     ],
     "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        },
         "phpnomad": {
             "recipes": "recipes/",
             "templates": "templates/"
