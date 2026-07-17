@@ -1,0 +1,70 @@
+{
+    "name": "factory",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "One-way converter that constructs models from raw input data (API responses, rows, JSON).",
+    "description": "Creates a factory class that builds a model from raw array data",
+    "problem": "Raw data arrives in external shapes — API responses, database rows, decoded JSON — and you need a single, well-named place that validates, converts types, and constructs the clean model. One direction only: data in, model out.",
+    "appliesWhen": [
+        "You're converting external or raw data into a model",
+        "The same model is created from multiple data sources with different shapes",
+        "Field names or types need transformation during construction (dates, enums, casts)",
+        "You want construction logic out of the model itself — models hold data, factories build them"
+    ],
+    "avoidWhen": [
+        "You need both directions (model back out to the external format) — that's an adapter (phpnomad/model-adapter)",
+        "Construction happens in many optional steps with intermediate state — that's a builder",
+        "The input already matches the constructor exactly — instantiate the model directly",
+        "You're constructing services or infrastructure objects — that's DI wiring, not a data factory"
+    ],
+    "synonyms": {
+        "general": ["factory", "one-way mapper", "hydrator", "model builder (from data)", "deserializer"],
+        "laravel": ["model factory (shape only, not fake data)"],
+        "wordpress": ["post-to-object converter"],
+        "rest": ["response deserializer"]
+    },
+    "examples": [
+        "Create a factory that builds Task models from API responses",
+        "I need to turn WordPress posts into Task objects",
+        "Hydrate an Order from a database row",
+        "Convert webhook JSON into a typed model"
+    ],
+    "tags": ["data", "core", "factory"],
+    "tradeoffs": "One small file. Simpler than an adapter because it only converts one way — if you later need the reverse direction, migrate to phpnomad/model-adapter rather than bolting a toArray() onto the factory.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/model", "relationship": "the-typed-shape-this-constructs"},
+        {"recipe": "phpnomad/model-adapter", "relationship": "two-way-alternative-when-you-also-serialize-out"},
+        {"recipe": "phpnomad/builder", "relationship": "alternative-for-stepwise-construction"}
+    ],
+    "outputs": [
+        "A {name} factory class with a fromArray() conversion method returning {model}"
+    ],
+    "postApply": [
+        "Map input fields to constructor arguments using Arr::get() for safe access",
+        "Rename fromArray (or add sibling methods) per data source: fromApiResponse, fromDatabaseRow, ...",
+        "Extract repeated type conversions (dates, enums) into private helper methods",
+        "Handle missing or null input gracefully — validate required fields"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Factory class name (e.g. TaskFactory)",
+            "example": "TaskFactory",
+            "aiHint": "PascalCase, ending in 'Factory'. Convention is {ModelName}Factory."
+        },
+        "model": {
+            "type": "string",
+            "description": "FQCN of the model class this factory constructs",
+            "example": "App\\Models\\Task",
+            "aiHint": "Use the FQCN of the model class (created by phpnomad/model). Convention is {rootNamespace}\\Models\\{ModelName}."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Factories/{{name}}.php",
+            "template": "factory"
+        }
+    ],
+    "registrations": []
+}

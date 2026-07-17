@@ -23,6 +23,7 @@ phpnomad make --from=phpnomad/listener '{"name":"SendWelcomeEmail","event":"App\
 
 | Recipe | Purpose |
 |---|---|
+| `phpnomad/builder` | Fluent builder constructing a validated product object |
 | `phpnomad/command` | CLI command class |
 | `phpnomad/controller` | REST controller |
 | `phpnomad/database-datastore` | Datastore backed by a database table (composes datastore + table + database-handler) |
@@ -30,12 +31,18 @@ phpnomad make --from=phpnomad/listener '{"name":"SendWelcomeEmail","event":"App\
 | `phpnomad/datastore` | Datastore with interface and handler interface |
 | `phpnomad/event` | Event class |
 | `phpnomad/facade` | Facade proxying an interface |
+| `phpnomad/factory` | One-way factory constructing a model from raw data |
 | `phpnomad/graphql-type` | GraphQL type definition |
 | `phpnomad/initializer` | Initializer class |
 | `phpnomad/listener` | Event listener |
 | `phpnomad/model` | Data model class |
 | `phpnomad/model-adapter` | Adapter converting between two model representations |
 | `phpnomad/mutation` | Mutation handler |
+| `phpnomad/pipeline` | Pipeline pattern: payload, processor interface, and runner |
+| `phpnomad/provider` | Provider interface + implementation supplying configuration or context |
+| `phpnomad/registry` | Lazy registry pattern: registry, initiated event, core-items handler, provider |
+| `phpnomad/service` | Business-logic service orchestrating collaborators |
+| `phpnomad/strategy` | Strategy interface + swappable platform implementation |
 | `phpnomad/table` | Database table schema |
 | `phpnomad/task` | Task class |
 | `phpnomad/task-handler` | Task handler |

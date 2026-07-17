@@ -1,0 +1,68 @@
+{
+    "name": "service",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Business-logic orchestrator that coordinates other components to accomplish one operation.",
+    "description": "Creates a service class that encapsulates business logic and orchestrates collaborators",
+    "problem": "You have a complex operation (process an order, settle a payout, sync an account) that spans multiple components — data access, events, notifications — and you need one platform-agnostic place that owns the workflow, applies the business rules, and handles failure consistently.",
+    "appliesWhen": [
+        "An operation coordinates two or more components (datastores, strategies, other services)",
+        "Business rules need to be applied consistently in one place",
+        "The operation has failure states that need consistent error handling and logging",
+        "You want the 'doing' logic out of models, controllers, and listeners",
+        "Side effects should be broadcast as events rather than hard-coded calls"
+    ],
+    "avoidWhen": [
+        "The class would only convert data between formats — that's an adapter or factory",
+        "The class would only construct objects — that's a factory or builder",
+        "The class would only hold data — that's a model",
+        "The logic is a one-line delegation — call the collaborator directly",
+        "You're about to mix platform-specific calls into it — put those behind a strategy first"
+    ],
+    "synonyms": {
+        "general": ["service", "business service", "use case", "interactor", "orchestrator", "workflow class"],
+        "laravel": ["service class", "action class"],
+        "wordpress": ["business logic class"],
+        "ddd": ["application service", "domain service"]
+    },
+    "examples": [
+        "Add an order processing service",
+        "I need somewhere to put the payout settlement workflow",
+        "Create a service that coordinates payment, inventory, and notification",
+        "Where should the refund business logic live"
+    ],
+    "tags": ["core", "business-logic", "service"],
+    "tradeoffs": "One small file. Services with too many dependencies are hard to test — if the constructor grows past a handful of collaborators, split into smaller supporting services that compose.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/datastore", "relationship": "data-layer-this-orchestrates"},
+        {"recipe": "phpnomad/event", "relationship": "how-this-broadcasts-side-effects"},
+        {"recipe": "phpnomad/strategy", "relationship": "seam-for-platform-specific-steps"},
+        {"recipe": "phpnomad/facade", "relationship": "static-access-when-injection-is-impossible"}
+    ],
+    "outputs": [
+        "A {name} service class with a constructor-injection seam for collaborators"
+    ],
+    "postApply": [
+        "Inject the collaborators this operation needs (datastores, strategies, other services)",
+        "Add public methods for the business operations, validating inputs early",
+        "Broadcast domain events for side effects instead of calling consumers directly",
+        "Throw domain-specific exceptions and log failures — keep error handling consistent",
+        "No DI registration is needed: the container resolves concrete classes automatically"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Service class name (e.g. OrderProcessingService)",
+            "example": "OrderProcessingService",
+            "aiHint": "PascalCase, named for the operation it owns, ending in 'Service' (OrderProcessingService, RefundService). One service per type of business operation."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Services/{{name}}.php",
+            "template": "service"
+        }
+    ],
+    "registrations": []
+}

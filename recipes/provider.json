@@ -1,0 +1,91 @@
+{
+    "name": "provider",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Typed supplier of configuration, settings, or context behind a platform-agnostic interface.",
+    "description": "Creates a provider interface plus a concrete implementation, bound in the DI container",
+    "problem": "Your code needs configuration or contextual values (API keys, endpoints, prefixes, paths) but reading them directly couples you to a platform and makes testing painful. You want a small, focused interface that supplies the values, with the platform-specific retrieval hidden behind it.",
+    "appliesWhen": [
+        "Code needs settings or context whose source is platform-specific (options table, env vars, config files)",
+        "Different parts of code currently access the same configuration in different ways",
+        "Tests need to inject known configuration values without touching the real source",
+        "You want a single, typed access point for a group of related values"
+    ],
+    "avoidWhen": [
+        "The provider would perform operations rather than supply values — that's a strategy",
+        "It would grow into a grab-bag of unrelated configuration — split into focused providers",
+        "The value is a constant that never varies by platform or environment — just define a constant",
+        "You need lazily-registered, extensible collections of items — that's a registry"
+    ],
+    "synonyms": {
+        "general": ["provider", "config provider", "settings accessor", "context provider"],
+        "laravel": ["config repository accessor"],
+        "wordpress": ["option accessor", "settings wrapper"],
+        "dotnet": ["options accessor"]
+    },
+    "examples": [
+        "Add a config provider for the payment API credentials",
+        "I need a typed way to read the table prefix",
+        "Abstract where the plugin gets its API endpoint from",
+        "Create a settings accessor I can fake in tests"
+    ],
+    "tags": ["core", "provider", "config", "di"],
+    "tradeoffs": "Two files plus a DI binding. Keeps platform details out of consumers and makes configuration injectable in tests, at the cost of one more interface. Keep each provider focused on one purpose — descriptive method names, typed returns, no business logic.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/strategy", "relationship": "sibling-for-swappable-behavior-instead-of-values"},
+        {"recipe": "phpnomad/service", "relationship": "typical-consumer-of-this-interface"},
+        {"recipe": "phpnomad/initializer", "relationship": "where-the-binding-registers"}
+    ],
+    "outputs": [
+        "A {name} provider interface with typed accessor methods to define",
+        "A {implementation} concrete class implementing {name}",
+        "A DI binding mapping {implementation} to {name} in the initializer"
+    ],
+    "postApply": [
+        "Define descriptive, typed accessor methods on the interface (getApiKey(): string, ...)",
+        "Implement them in {implementation}, handling missing or invalid values gracefully",
+        "Create a test implementation returning known values for use in tests",
+        "Confirm the binding via `phpnomad inspect:di`"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Provider interface name (e.g. ApiConfigProvider)",
+            "example": "ApiConfigProvider",
+            "aiHint": "PascalCase, named for what it supplies, ending in 'Provider' (ApiConfigProvider, PrefixProvider). This is the interface consumers type against."
+        },
+        "implementation": {
+            "type": "string",
+            "description": "Concrete implementation class name (e.g. EnvApiConfigProvider)",
+            "example": "EnvApiConfigProvider",
+            "aiHint": "PascalCase, prefixed with the source or platform (EnvApiConfigProvider, WordPressPrefixProvider)."
+        },
+        "initializer": {
+            "type": "string",
+            "description": "FQCN of the initializer to register the DI binding in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related bindings for this domain. If unsure, use the project's root initializer."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Providers/{{implementation}}.php",
+            "template": "provider"
+        },
+        {
+            "path": "lib/Providers/Interfaces/{{name}}.php",
+            "template": "provider-interface"
+        }
+    ],
+    "registrations": [
+        {
+            "initializer": "{{initializer}}",
+            "method": "getClassDefinitions",
+            "interface": "PHPNomad\\Loader\\Interfaces\\HasClassDefinitions",
+            "type": "map",
+            "key": "{{namespace}}\\{{implementation}}",
+            "value": "{{namespace}}\\Interfaces\\{{name}}"
+        }
+    ]
+}

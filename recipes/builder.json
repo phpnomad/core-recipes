@@ -1,0 +1,71 @@
+{
+    "name": "builder",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Fluent, step-by-step constructor for a complex object, validated before build().",
+    "description": "Creates a builder class with a fluent interface that constructs and validates a product object",
+    "problem": "An object has many parameters — most optional, easy to pass in the wrong order — and cramming them into one constructor call is unreadable. You want to assemble it step by step through named, chainable methods, validate the accumulated state, and only then construct the immutable product.",
+    "appliesWhen": [
+        "The object has multiple optional parts that vary per use",
+        "Construction happens in stages or across call sites before the object is complete",
+        "You want named, fluent setters instead of long positional argument lists",
+        "The final state needs validation before the object may exist"
+    ],
+    "avoidWhen": [
+        "The object has only a couple of required parameters — call the constructor directly",
+        "You're converting existing raw data into a model in one shot — that's a factory",
+        "You'd allow mutating the product after build() — that defeats the pattern; keep products immutable",
+        "Every consumer builds the same fixed shape — a factory method or director-style helper is simpler"
+    ],
+    "synonyms": {
+        "general": ["builder", "fluent builder", "object assembler", "chainable constructor"],
+        "laravel": ["fluent builder"],
+        "java": ["builder"],
+        "rest": ["request builder"]
+    },
+    "examples": [
+        "Add an email builder with to, cc, subject, and body steps",
+        "I need a fluent way to assemble a report definition",
+        "Constructing this query object takes too many constructor args",
+        "Create a builder that validates before constructing the Order"
+    ],
+    "tags": ["core", "builder", "construction"],
+    "tradeoffs": "One file. Clearer call sites and validated construction, but it's over-engineering for simple objects — reach for it only when optional parameters and staged construction genuinely exist. Keep the product immutable.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/model", "relationship": "typical-product-this-constructs"},
+        {"recipe": "phpnomad/factory", "relationship": "alternative-for-one-shot-construction-from-data"},
+        {"recipe": "phpnomad/service", "relationship": "director-style-consumers-encapsulating-common-sequences"}
+    ],
+    "outputs": [
+        "A {name} builder class with a build() method returning {model}",
+        "A validate() hook invoked before construction"
+    ],
+    "postApply": [
+        "Add a state property and a fluent setter (returning $this) for each configurable part",
+        "Provide sensible defaults for optional parts",
+        "Implement validate() to throw InvalidArgumentException when required state is missing",
+        "Keep the product immutable — all mutation happens in the builder, none after build()"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Builder class name (e.g. EmailBuilder)",
+            "example": "EmailBuilder",
+            "aiHint": "PascalCase, ending in 'Builder'. Convention is {ProductName}Builder."
+        },
+        "model": {
+            "type": "string",
+            "description": "FQCN of the product class this builder constructs",
+            "example": "App\\Models\\Email",
+            "aiHint": "Use the FQCN of the product (usually a model created by phpnomad/model). The product should be immutable."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Builders/{{name}}.php",
+            "template": "builder"
+        }
+    ],
+    "registrations": []
+}

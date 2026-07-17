@@ -1,0 +1,103 @@
+{
+    "name": "registry",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Lazy-loaded extensible collection with controlled access: registry, event, handler, provider.",
+    "description": "Creates the four-part registry pattern: registry storage, initiated event, core-items handler, and provider service",
+    "problem": "You have an extensible collection of related items (currencies, resolvers, integrations) that third parties should be able to add to — but only through a controlled surface — and that should cost nothing until first accessed. You need lazy loading at both the registry and item level, with the storage mechanism protected from direct manipulation.",
+    "appliesWhen": [
+        "Third parties or other modules need to register items into a shared collection",
+        "You want precise control over which operations (add, get, remove) extenders may perform",
+        "Items are expensive to build and should instantiate lazily on first access",
+        "Items are registered at runtime rather than wired statically in the container"
+    ],
+    "avoidWhen": [
+        "The collection is fixed and internal — a plain array or DI bindings are simpler",
+        "You need per-item configuration values, not extensible items — that's a provider",
+        "Consumers need write access to a shared mutable state bag — registries are not global state containers",
+        "Only one implementation of a behavior is being selected — that's a strategy"
+    ],
+    "synonyms": {
+        "general": ["registry", "extensible collection", "plugin registry", "item catalog", "lazy registry"],
+        "wordpress": ["filterable collection", "registration hook surface"],
+        "laravel": ["manager with custom drivers", "extendable container"],
+        "node": ["plugin registry"]
+    },
+    "examples": [
+        "Add a currency registry third parties can extend",
+        "I need a lazily-loaded catalog of integrations",
+        "Let plugins register their own field resolvers, but not delete ours",
+        "Create an extensible registry of report types"
+    ],
+    "tags": ["core", "registry", "extensibility", "events", "lazy-loading"],
+    "tradeoffs": "Four files plus a listener registration — the heaviest core pattern. Buys controlled extensibility and two-level lazy loading; skip it for fixed internal collections. The event's method surface is the security boundary: only expose the operations extenders should have.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/event", "relationship": "the-initiated-event-is-a-specialized-one-of-these"},
+        {"recipe": "phpnomad/listener", "relationship": "the-core-items-handler-is-a-specialized-one-of-these"},
+        {"recipe": "phpnomad/provider", "relationship": "the-provider-service-is-the-facade-consumers-use"},
+        {"recipe": "phpnomad/initializer", "relationship": "where-the-handler-registers"}
+    ],
+    "outputs": [
+        "A {name}Registry class using WithGet/WithSet for lazy item storage",
+        "A {name}RegistryInitiatedEvent exposing the controlled registration surface",
+        "A RegisterCore{name}Items handler that seeds core items on first access",
+        "A {name}Provider service that lazily initializes and reads the registry",
+        "A listener registration mapping the event to the handler in the initializer"
+    ],
+    "postApply": [
+        "Seed core items in RegisterCore{name}Items::handle() using $event->set(key, fn () => ...)",
+        "Replace {name}Provider::get() with purpose-specific, typed accessors for the item type",
+        "Expose only the operations third parties should have on the event (omit delete to forbid deletion)",
+        "Inject {name}Provider wherever items are consumed — never touch the registry directly",
+        "Confirm the listener wiring via `phpnomad inspect:di`"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Domain name for the registry (e.g. Currency)",
+            "example": "Currency",
+            "aiHint": "Singular PascalCase domain concept, no suffix — the recipe derives {name}Registry, {name}Provider, etc. (Currency, FieldResolver, Integration)."
+        },
+        "eventId": {
+            "type": "string",
+            "description": "Unique event identifier for the registry initiated event (e.g. currency.registry.initiated)",
+            "example": "currency.registry.initiated",
+            "aiHint": "Lowercase, dot-separated, ending in 'registry.initiated' ({nameSnake}.registry.initiated). Must be unique across the project."
+        },
+        "initializer": {
+            "type": "string",
+            "description": "FQCN of the initializer to register the listener in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns this domain. If unsure, use the project's root initializer."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Registries/{{name}}/{{name}}Registry.php",
+            "template": "registry"
+        },
+        {
+            "path": "lib/Registries/{{name}}/{{name}}RegistryInitiatedEvent.php",
+            "template": "registry-event"
+        },
+        {
+            "path": "lib/Registries/{{name}}/RegisterCore{{name}}Items.php",
+            "template": "registry-handler"
+        },
+        {
+            "path": "lib/Registries/{{name}}/{{name}}Provider.php",
+            "template": "registry-provider"
+        }
+    ],
+    "registrations": [
+        {
+            "initializer": "{{initializer}}",
+            "method": "getListeners",
+            "interface": "PHPNomad\\Events\\Interfaces\\HasListeners",
+            "type": "map",
+            "key": "{{namespace}}\\{{name}}RegistryInitiatedEvent",
+            "value": "{{namespace}}\\RegisterCore{{name}}Items"
+        }
+    ]
+}
