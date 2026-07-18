@@ -1,0 +1,91 @@
+{
+    "name": "strategy",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Swappable implementation family behind one interface — the seam for platform-specific behavior.",
+    "description": "Creates a strategy interface plus a concrete implementation, bound in the DI container",
+    "problem": "The same operation (caching, logging, payments, sending email) needs different implementations per platform or context, and consumers should not know or care which one they get. You want one contract, interchangeable implementations, and a DI binding that picks the active one.",
+    "appliesWhen": [
+        "An operation has, or will have, more than one implementation (per platform, vendor, or context)",
+        "You want to isolate platform-specific code behind a platform-agnostic contract",
+        "Behavior must be swappable for testing (a test double implements the same interface)",
+        "The implementation should be chosen at wiring time, not hard-coded at call sites"
+    ],
+    "avoidWhen": [
+        "There is exactly one implementation and no plausible second — a plain class is simpler",
+        "The 'variants' differ by data, not behavior — use configuration via a provider instead",
+        "The interface would need many unrelated methods — split into smaller, focused strategies",
+        "You need to supply configuration values rather than perform operations — that's a provider"
+    ],
+    "synonyms": {
+        "general": ["strategy", "driver", "backend", "pluggable implementation", "swappable behavior"],
+        "laravel": ["driver", "manager-driven driver"],
+        "wordpress": ["platform bridge", "transient/object-cache backend"],
+        "node": ["provider implementation", "adapter (behavioral)"]
+    },
+    "examples": [
+        "Add a cache strategy with a Redis implementation",
+        "I need swappable payment processing",
+        "Isolate the platform-specific logging behind an interface",
+        "Create a driver seam for sending email"
+    ],
+    "tags": ["core", "strategy", "di", "platform"],
+    "tradeoffs": "Two files plus a DI binding. Strategies are the backbone of how PHPNomad stays platform-agnostic, but every strategy adds an indirection — keep interfaces minimal and behavior consistent across implementations.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/provider", "relationship": "sibling-for-supplying-values-instead-of-behavior"},
+        {"recipe": "phpnomad/service", "relationship": "typical-consumer-of-this-interface"},
+        {"recipe": "phpnomad/initializer", "relationship": "where-the-binding-registers"}
+    ],
+    "outputs": [
+        "A {name} strategy interface defining the contract",
+        "A {implementation} concrete class implementing {name}",
+        "A DI binding mapping {implementation} to {name} in the initializer"
+    ],
+    "postApply": [
+        "Define the interface methods — focused, minimal, one type of operation",
+        "Implement them in {implementation}, keeping platform details contained there",
+        "Add further implementations (including a test double) as separate classes bound per context",
+        "Confirm the binding via `phpnomad inspect:di`"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Strategy interface name (e.g. CacheStrategy)",
+            "example": "CacheStrategy",
+            "aiHint": "PascalCase, named for the operation family, conventionally ending in 'Strategy' (CacheStrategy, PaymentStrategy). This is the interface consumers type against."
+        },
+        "implementation": {
+            "type": "string",
+            "description": "Concrete implementation class name (e.g. RedisCache)",
+            "example": "RedisCache",
+            "aiHint": "PascalCase, named for the platform or vendor plus the operation (RedisCache, WordPressCache, StripePayments). No 'Strategy' suffix on concretes."
+        },
+        "initializer": {
+            "type": "string",
+            "description": "FQCN of the initializer to register the DI binding in",
+            "example": "App\\AppInit",
+            "aiHint": "Pick the initializer that owns related bindings for this domain. If unsure, use the project's root initializer."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Strategies/{{implementation}}.php",
+            "template": "strategy"
+        },
+        {
+            "path": "lib/Strategies/Interfaces/{{name}}.php",
+            "template": "strategy-interface"
+        }
+    ],
+    "registrations": [
+        {
+            "initializer": "{{initializer}}",
+            "method": "getClassDefinitions",
+            "interface": "PHPNomad\\Loader\\Interfaces\\HasClassDefinitions",
+            "type": "map",
+            "key": "{{namespace}}\\{{implementation}}",
+            "value": "{{namespace}}\\Interfaces\\{{name}}"
+        }
+    ]
+}

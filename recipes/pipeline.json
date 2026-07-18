@@ -1,0 +1,75 @@
+{
+    "name": "pipeline",
+    "kind": "scaffolding",
+    "stability": "stable",
+    "summary": "Sequential processing chain: a payload accumulates data and errors as ordered processors run.",
+    "description": "Creates the pipeline pattern: a payload, a processor interface, and a pipeline runner",
+    "problem": "Data must flow through multiple processing steps in a defined order — each step examining, transforming, or accumulating information — without the steps knowing about each other. Errors need tracking across the whole run, and any step must be able to halt the chain.",
+    "appliesWhen": [
+        "An operation decomposes into ordered, independent steps (validate, enrich, calculate, finalize)",
+        "Steps accumulate or transform shared state as the data flows through",
+        "Errors at any step must be collected and visible at the end of the run",
+        "Steps should stay decoupled — communicating only through the shared payload"
+    ],
+    "avoidWhen": [
+        "The workflow is two or three fixed calls — a service method is simpler and clearer",
+        "Consumers react to a fact without ordering guarantees — use an event with listeners",
+        "Steps need request/response interaction with each other — pipelines share only the payload",
+        "The steps run asynchronously or across requests — use tasks and handlers instead"
+    ],
+    "synonyms": {
+        "general": ["pipeline", "processing chain", "middleware chain", "chain of responsibility", "processors"],
+        "laravel": ["pipeline"],
+        "wordpress": ["filter chain (with accumulated state)"],
+        "node": ["middleware stack"]
+    },
+    "examples": [
+        "Build an order calculation pipeline: inventory, discounts, tax, shipping, total",
+        "I need a report generation flow with independent accumulating steps",
+        "Process an import through validation, normalization, and persistence stages",
+        "Chain processors that can each veto the operation"
+    ],
+    "tags": ["core", "pipeline", "workflow", "processing"],
+    "tradeoffs": "Three files and an extra indirection per step. Worth it when steps genuinely vary or reorder; overkill for short fixed sequences. Processor order matters and inter-step data dependencies are implicit — document what each processor expects and provides on the payload.",
+    "relatedPatterns": [
+        {"recipe": "phpnomad/service", "relationship": "simpler-alternative-for-short-fixed-workflows"},
+        {"recipe": "phpnomad/listener", "relationship": "alternative-when-steps-need-no-ordering-or-shared-state"},
+        {"recipe": "phpnomad/task", "relationship": "alternative-for-async-multi-step-work"}
+    ],
+    "outputs": [
+        "A {name}Payload class that accumulates data, tracks errors, and supports halting",
+        "A {name}Processor interface each step implements",
+        "A {name}Pipeline runner that executes processors in order and honors stop()"
+    ],
+    "postApply": [
+        "Create a processor class per step implementing {name}Processor, each focused and independent",
+        "Replace the payload's generic data bag with typed properties and purpose-named accessors",
+        "Order processors deliberately when constructing the pipeline — dependencies flow forward",
+        "Add a final processor that verifies required data, handles accumulated errors, and produces the result",
+        "Compose the pipeline where it is consumed (or bind it via a DI factory) with the processors in order"
+    ],
+    "vars": {
+        "name": {
+            "type": "string",
+            "description": "Domain name for the pipeline (e.g. ReportGeneration)",
+            "example": "ReportGeneration",
+            "aiHint": "PascalCase phrase naming the overall operation, no suffix — the recipe derives {name}Pipeline, {name}Payload, {name}Processor (ReportGeneration, OrderCalculation)."
+        }
+    },
+    "requires": [],
+    "files": [
+        {
+            "path": "lib/Pipelines/{{name}}/{{name}}Pipeline.php",
+            "template": "pipeline"
+        },
+        {
+            "path": "lib/Pipelines/{{name}}/{{name}}Payload.php",
+            "template": "pipeline-payload"
+        },
+        {
+            "path": "lib/Pipelines/{{name}}/{{name}}Processor.php",
+            "template": "pipeline-processor"
+        }
+    ],
+    "registrations": []
+}
